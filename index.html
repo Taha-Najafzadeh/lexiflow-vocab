@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LexiFlow — B2 Vocabulary &amp; Phrase Flashcards</title>
+  <meta name="description" content="Spaced-repetition Anki-style flashcard web app for B2 English vocabularies, collocations, and phrases with US English pronunciation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark">L</div>
+        <div class="brand-text">
+          <h1>LexiFlow</h1>
+          <p>Active Recall · US English B2</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <nav class="nav-tabs" aria-label="Primary">
+          <button class="nav-tab active" data-tab="study" type="button">Study</button>
+          <button class="nav-tab" data-tab="library" type="button">Library</button>
+        </nav>
+        <button class="icon-btn primary" id="btn-open-add" type="button">+ Add</button>
+        <button class="icon-btn" id="btn-open-sync" type="button">Sync</button>
+      </div>
+    </header>
+
+    <section class="stats-strip" id="stats-strip" aria-label="Progress Summary"></section>
+
+    <main id="main-content"></main>
+  </div>
+
+  <!-- Add / Edit Card Modal -->
+  <div class="modal-backdrop hidden" id="card-modal" role="dialog" aria-modal="true" aria-labelledby="card-modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="card-modal-title">Add Vocabulary or Phrase</h2>
+        <button class="mini-btn" id="btn-close-card-modal" type="button">✕</button>
+      </div>
+      <form id="card-form" class="form-grid">
+        <div class="field">
+          <label for="f-term">Word, Collocation, or Phrase *</label>
+          <input id="f-term" type="text" required placeholder="e.g. fragile relationship / work around" />
+        </div>
+        <div class="form-row-2">
+          <div class="field">
+            <label for="f-type">Category</label>
+            <select id="f-type">
+              <option value="vocab">Vocabulary / Collocation</option>
+              <option value="phrase">Phrase / Expression</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-pos">Part of Speech</label>
+            <input id="f-pos" type="text" placeholder="e.g. adj., v., collocation, phrase" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-ipa">US English Pronunciation (IPA)</label>
+          <input id="f-ipa" type="text" placeholder="e.g. /ˈfrædʒ.əl/" />
+        </div>
+        <div class="field">
+          <label for="f-meaning">Simple B2 Meaning *</label>
+          <textarea id="f-meaning" rows="2" required placeholder="Clear English definition without using the target word..."></textarea>
+        </div>
+        <div class="field">
+          <label for="f-example">Sample Example Sentence</label>
+          <textarea id="f-example" rows="2" placeholder="Natural sentence showing how it is used..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="icon-btn" id="btn-cancel-card" type="button">Cancel</button>
+          <button class="icon-btn primary" type="submit">Save Card</button>
+        </div>
+      </form>
+
+      <div id="bulk-section">
+        <div class="divider-text">Or Bulk Import Lines</div>
+        <div class="field">
+          <label for="f-bulk">One per line: <code>term | meaning | example | vocab/phrase | ipa</code></label>
+          <textarea id="f-bulk" rows="4" placeholder="resilient | able to recover quickly from difficulties | She remained resilient after the setback. | vocab | /rɪˈzɪl.jənt/"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="icon-btn" id="btn-bulk-import" type="button">Import Lines</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sync & Backup Modal -->
+  <div class="modal-backdrop hidden" id="sync-modal" role="dialog" aria-modal="true" aria-labelledby="sync-modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="sync-modal-title">Backup &amp; Cross-Device Sync</h2>
+        <button class="mini-btn" id="btn-close-sync-modal" type="button">✕</button>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <p style="margin:0 0 10px; font-size:0.9rem; color:var(--text-secondary);">
+            Export a JSON file to transfer your cards and Anki progress between your laptop and phone anytime.
+          </p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="icon-btn primary" id="btn-export-json" type="button">Export JSON Backup</button>
+            <label class="icon-btn" style="cursor:pointer;">
+              Import JSON
+              <input id="input-import-json" type="file" accept=".json" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <div class="divider-text">Optional Cloud Sync (Supabase)</div>
+        <div class="field">
+          <label for="s-url">Supabase Project URL</label>
+          <input id="s-url" type="url" placeholder="https://xxxxx.supabase.co" />
+        </div>
+        <div class="field">
+          <label for="s-key">Supabase Anon Public Key</label>
+          <input id="s-key" type="password" placeholder="eyJhbGci..." />
+        </div>
+        <div class="field">
+          <label for="s-code">Sync Code (same on laptop &amp; phone)</label>
+          <input id="s-code" type="text" placeholder="my-vocab-deck" />
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="icon-btn primary" id="btn-push-cloud" type="button">Push to Cloud</button>
+          <button class="icon-btn" id="btn-pull-cloud" type="button">Pull from Cloud</button>
+        </div>
+        <div class="sync-status" id="sync-status">Ready.</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
